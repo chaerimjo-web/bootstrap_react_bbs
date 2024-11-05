@@ -56,7 +56,7 @@ export default class BoardList extends Component {
   onCheckboxChange = (checked, id)=>{
     const list = [...this.state.checkList]; //풀어헤치고
     if(checked){
-      if(list.includes(id)){
+      if(!list.includes(id)){
         list.push(id);
       }
     }else{
@@ -74,18 +74,28 @@ export default class BoardList extends Component {
       const {data} = res;
       this.setState({
         BoardList:data //data로 바꿈 / 배열로 바꿈
-      })
+      });
+      this.props.renderComplete(); //app.js에 목록 출력이 완료되었다고 전달
     })
     .catch((e)=>{
       // 에러 핸들링
       console.log(e);
     });
   }
+
   componentDidMount(){
     this.getList();
   }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.isModifyMode !== this.props.boardId !== prevProps.boardId) {
+      this.getList();
+    }
+  }
+  //새로운 값 !== 이전의 값이 다르다면, 목록을 다시조회 this.getList();
   render() {
-    // console.log(this.state.BoardList)
+    console.log(this.props)
+    console.log(this.state.BoardList)
     return (
       <>
         <Table striped bordered hover>
@@ -102,12 +112,12 @@ export default class BoardList extends Component {
             {
               this.state.BoardList.map(
                 item=><Board 
-                key={item.BOARD_ID} 
-                id={item.BOARD_ID} 
-                title={item.BOARD_TITLE} 
-                registerId={item.REGISTER_ID} 
-                date={item.REGISTER_DATE}
-                onCheckboxChange={this.onCheckboxChange} //선택한 번호
+                  key={item.BOARD_ID} 
+                  id={item.BOARD_ID} 
+                  title={item.BOARD_TITLE} 
+                  registerId={item.REGISTER_ID} 
+                  date={item.REGISTER_DATE}
+                  onCheckboxChange={this.onCheckboxChange} //선택한 번호
                 />
               )
             }
@@ -115,7 +125,9 @@ export default class BoardList extends Component {
         </Table>
         <div className="d-flex gap-1">
           <Button variant="primary">글쓰기</Button>
-          <Button variant="secondary">수정하기</Button>
+          <Button variant="secondary" onClick={()=>{
+            this.props.handleModify(this.state.checkList); //사용자가 체크한 숫자|실행시->편집모드로 전환 false->true
+          }}>수정하기</Button>
           <Button variant="danger">삭제하기</Button>
         </div>      
       </>
